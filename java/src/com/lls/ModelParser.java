@@ -6,7 +6,7 @@ import java.util.List;
 public class ModelParser {
   final static String autoGenPrefix = "GeneratedModel_";
 
-  List<BlifModel> parsedBlif;
+  private List<BlifModel> parsedBlif;
 
   ModelParser(String source) {
     parsedBlif = new ArrayList<>();
@@ -48,7 +48,7 @@ public class ModelParser {
           buf.append(line).append("\n");
           if (keyword.equals(".end")) {
             // Extract the model name, dump the buffer into the model
-            String modelName = buf.substring(6, buf.indexOf("\n"));
+            String modelName = buf.substring(7, buf.indexOf("\n"));
             BlifModel m = new BlifModel(modelName, buf.toString());
             parsedBlif.add(m);
 
