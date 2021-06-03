@@ -9,6 +9,29 @@ public class Main {
     private static final String RED = "\033[0;31m";     // Red console color
     private static final String GREEN = "\033[0;32m";   // Green console color
 
+    public static void parseVerilog(Path inputPath, Path outputPath, Path yosysPath) {
+        System.out.println(yosysPath.toAbsolutePath());
+
+        try {
+            Process p = new ProcessBuilder(yosysPath.toAbsolutePath().toString(), "-f", "verilog", "-b", "blif", "" +
+                    "-o", outputPath.toAbsolutePath().toString(), "-p", "proc", "-p", "opt", inputPath.toAbsolutePath().toString()).start();
+
+            if (!p.waitFor(30, TimeUnit.SECONDS)) {
+                System.out.println("TIMEOUT!");
+                return;
+            }
+
+            if (p.exitValue() != 0) {
+                System.out.println("Error!");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Wrote blif!");
+    }
+
     // Takes one argument:
     //      - Path to a directory of BLIF files or one BLIF file
     public static void main(String[] args) {
