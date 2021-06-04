@@ -3,12 +3,10 @@ package com.lls;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
-    private static final String RESET = "\033[0m";  // Text Reset
-    private static final String RED = "\033[0;31m";     // Red console color
-    private static final String GREEN = "\033[0;32m";   // Green console color
-
     public static void parseVerilog(Path inputPath, Path outputPath, Path yosysPath) {
         System.out.println(yosysPath.toAbsolutePath());
 
@@ -49,16 +47,18 @@ public class Main {
             // Read the BLIF file as one big string and pass it to the model parser
             String blifInput = Files.readString(Path.of(args[0]));
             ModelParser parser = new ModelParser(blifInput);
+            ModelChecker checker = new ModelChecker();
 
             // Loop over all the parsed models and determine whether they are sequential or not
             for (BlifModel m : parser.getParsedBlif()){
-                System.out.println("Model " + m.name + " is " + (ModelChecker.checkModel(m) ? RED + "sequential" + RESET :  GREEN + "combinational" + RESET));
+                System.out.println("Model " + m.name + " is " + checker.checkModel(m));
             }
         } catch (Exception e) {
             System.out.println("Error while running program, please invoke with");
             System.out.println("java -jar Program.jar <Path to generated BLIF file>");
 
             System.out.println("Error message: " + e.getMessage());
+            System.out.println("In " + Arrays.toString(e.getStackTrace()));
             System.exit(1);
         }
     }
