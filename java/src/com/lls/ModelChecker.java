@@ -27,8 +27,9 @@ public class ModelChecker {
 
       Yosys uses an internal cell library that it synthesizes to.
       By checking the BLIF model for subcircuits that require a cell with sequential logic,
-      we can determine if the whole model implements sequential logic or not.
-      If this check passes, another one is carried out that tests for wire loops within .names
+      we can determine if the whole model implements sequential logic or not. Afterwards the lack
+      of existence of .latch / .mlatch / .clock blocks is asserted.
+      If these checks pass, another one is carried out that tests for wire loops within .names
       as these are an indicator of sequential logic with only gates.
    */
   public CircuitType checkModel(BlifModel m) {
@@ -46,6 +47,14 @@ public class ModelChecker {
     }
 
     // Second check
+    pattern = Pattern.compile("\\.(m?)latch|\\.clock");
+    matcher = pattern.matcher(m.model);
+
+    if (matcher.find()) {
+      return CircuitType.SEQUENTIAL;
+    }
+
+    // Third check
     WireGraph wireGraph = new WireGraph();
 
     // Create wires from .inputs and .outputs
