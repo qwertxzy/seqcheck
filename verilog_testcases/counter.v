@@ -10,10 +10,11 @@ reg [3:0] cnt_internal;
 
   always @(posedge clk or negedge async_reset)
   begin
-    if (async_reset == 1)
-      cnt_internal <= 0;
+    if (async_reset == 1'b0)
+      cnt_internal <= 4'b0;
     else
-      cnt_internal <= cnt_internal + 1;
+      if (inc)
+        cnt_internal <= cnt_internal + 1'b1;
   end
 
 assign count = cnt_internal;
