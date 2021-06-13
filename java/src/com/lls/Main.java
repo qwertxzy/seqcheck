@@ -48,19 +48,15 @@ public class Main {
         String blifInput = "";
 
         try {
-            if (args.length == 1) {
-                // BLIF only mode
-                blifPath = Path.of(args[0]);
-
-            } else if (args.length >= 2) {
-                // Synth mode
+            if (args[0].equals("-s")) {// Synth mode
                 Path yosysPath = Path.of("yosys");
 
-                int i = 0;
-                if (args[0].equals("-y")) {
-                    yosysPath = Path.of(args[1]);
-                    i = 2;
+                int i = 1;
+                if (args[i].equals("-y")) {
+                    yosysPath = Path.of(args[i + 1]);
+                    i += 2;
                 }
+                // WARNING ! PROBLEM: WAS WENN NUR EINE VERILOG INPUT FILE -> FLAG FÜR VLOG / BLIF
 
                 ArrayList<Path> inputFiles = new ArrayList<>();
                 for (; i < args.length; i++) {
@@ -78,6 +74,11 @@ public class Main {
                 blifPath = Paths.get("./out.blif");
 
                 parseVerilog(inputFiles.toArray(new Path[]{}), blifPath, yosysPath);
+            } else if (args.length == 1) {
+                // BLIF only mode
+                blifPath = Path.of(args[0]);
+            } else {
+                throw new Exception("Invalid argument count");
             }
 
             // Read the BLIF file as one big string
@@ -87,7 +88,7 @@ public class Main {
             System.out.println("Error while running program, please invoke with");
             System.out.println("\tjava -jar Program.jar <Path to BLIF file>");
             System.out.println("or");
-            System.out.println("\tjava -jar Program.jar [-y <Yosys path>] <Verilog file> [<Verilog file>...]");
+            System.out.println("\tjava -jar Program.jar -s [-y <Yosys path>] <Verilog file> [<Verilog file>...]");
             System.out.println("Where <Verilog file> can be a single .v file or a directory of those files and <Yosys path> points to the Yosys executable");
             System.out.println("NOTE: If the yosys executable is not in the path, it has to be specified using -y\n\n");
 
