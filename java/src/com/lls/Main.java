@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class Main {
     public static void parseVerilog(Path[] inputPath, Path outputPath, Path yosysPath) throws Exception {
-            ProcessBuilder pb = new ProcessBuilder(yosysPath.toAbsolutePath().toString(),
+            ProcessBuilder pb = new ProcessBuilder(yosysPath.toString(),
                 "-f", "verilog", "-b", "blif", "-o", outputPath.toAbsolutePath().toString(), "-p", "synth");
 
             Arrays.stream(inputPath).map(path -> path.toAbsolutePath().toString()).forEach(s -> pb.command().add(s));
@@ -52,26 +52,32 @@ public class Main {
                 // BLIF only mode
                 blifPath = Path.of(args[0]);
 
-            } else if (args.length == 2) {
+            } else if (args.length >= 2) {
                 // Synth mode
+                Path yosysPath = Path.of("yosys");
 
-                // Check if Verilog argument is a directory or a single file
-                List<Path> verilogPath = new ArrayList<>();
-                File verilogArg = new File(args[0]);
-                if (verilogArg.isDirectory()) {
-                    // A little cumbersome, but filter directory for .v files and then turn each java.io.File into a java.nio.Path
-                    File[] verilogFiles = verilogArg.listFiles((dir, name) -> name.toLowerCase().endsWith(".v"));
-                    verilogPath = Arrays.stream(verilogFiles).map(f -> Path.of(f.getPath())).collect(Collectors.toList());
-
-                } else {
-                    verilogPath.add(Path.of(args[0]));
+                int i = 0;
+                if (args[0].equals("-y")) {
+                    yosysPath = Path.of(args[1]);
+                    i = 2;
                 }
 
-                Path yosysPath = Path.of(args[1]);
+                ArrayList<Path> inputFiles = new ArrayList<>();
+                for (; i < args.length; i++) {
+                    // Check if Verilog argument is a directory or a single file
+                    File verilogArg = new File(args[i]);
+                    if (verilogArg.isDirectory()) {
+                        // A little cumbersome, but filter directory for .v files and then turn each java.io.File into a java.nio.Path
+                        File[] verilogFiles = verilogArg.listFiles((dir, name) -> name.toLowerCase().endsWith(".v"));
+                        inputFiles.addAll(Arrays.stream(verilogFiles).map(f -> Path.of(f.getPath())).collect(Collectors.toList()));
+                    } else {
+                        inputFiles.add(Path.of(args[i]));
+                    }
+                }
+
                 blifPath = Paths.get("./out.blif");
 
-                parseVerilog(verilogPath.toArray(new Path[]{}), blifPath, yosysPath);
-
+                parseVerilog(inputFiles.toArray(new Path[]{}), blifPath, yosysPath);
             }
 
             // Read the BLIF file as one big string
@@ -81,8 +87,9 @@ public class Main {
             System.out.println("Error while running program, please invoke with");
             System.out.println("\tjava -jar Program.jar <Path to BLIF file>");
             System.out.println("or");
-            System.out.println("\tjava -jar Program.jar <Verilog path> <Yosys path>");
-            System.out.println("Where Verilog path points to either one Verilog file or a directory of .v files and Yosys path points to the Yosys executable\n\n");
+            System.out.println("\tjava -jar Program.jar [-y <Yosys path>] <Verilog file> [<Verilog file>...]");
+            System.out.println("Where <Verilog file> can be a single .v file or a directory of those files and <Yosys path> points to the Yosys executable");
+            System.out.println("NOTE: If the yosys executable is not in the path, it has to be specified using -y\n\n");
 
             System.out.println("Error message: " + e.getMessage());
             System.out.println("In " + Arrays.toString(e.getStackTrace()));
